@@ -1,0 +1,373 @@
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Mvc
+@using Microsoft.AspNetCore.Mvc.Razor
+@using System.Security.Claims
+@inject IHttpContextAccessor HttpContextAccessor
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery
+
+
+@{
+    // Razor: 判斷目前是否登入
+    var customerAuth = await HttpContextAccessor.HttpContext.AuthenticateAsync("CustomerAuth");
+    var isCustomerLoggedIn = customerAuth?.Principal?.Identity?.IsAuthenticated ?? false;
+    var isHomePage =
+        string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Home", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(ViewContext.RouteData.Values["action"]?.ToString(), "Index", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(ViewContext.RouteData.Values["area"]?.ToString(), "CustomersArea", StringComparison.OrdinalIgnoreCase);
+    string levelClass = "badge-iron"; // default
+    
+    string customerName = "";
+    string customerLevelName = "";
+
+
+    if (isCustomerLoggedIn)
+    {
+        var claims = customerAuth.Principal.Claims;
+        customerName = claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? "";
+        customerLevelName = claims.FirstOrDefault(c => c.Type == "LevelName")?.Value ?? "";
+        levelClass = customerLevelName switch
+        {
+            "Iron" => "badge-iron",
+            "Bronze" => "badge-bronze",
+            "Silver" => "badge-silver",
+            "Gold" => "badge-gold",
+            _ => "badge-iron"
+        };
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- head -->
+    <link rel="manifest" href="~/CustomersArea/manifest.json?v=3">
+    <meta name="theme-color" content="#22B3C1">
+    <link rel="icon" type="image/png" href="~/CustomersArea/icon-192.png?v=3">
+    @* 簡易pwa *@
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>貓爪足跡-@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@200..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="~/front-end/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/front-end/assets/css/fontawesome.css" />
+    <link rel="stylesheet" href="~/front-end/assets/css/templatemo-woox-travel.css" />
+    <link rel="stylesheet" href="~/front-end/assets/css/owl.css" />
+    <link rel="stylesheet" href="~/front-end/assets/css/animate.css" />
+    <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
+    @RenderSection("Styles", required: false)
+
+    <style>
+        .badge-iron {
+            background-color: #6c757d !important; /* 灰 */
+        }
+
+        .badge-bronze {
+            background-color: #cd7f32 !important; /* 銅色 */
+        }
+
+        .badge-silver {
+            background-color: #c0c0c0 !important; /* 銀色 */
+            color: black !important;
+        }
+
+        .badge-gold {
+            background-color: #ffd700 !important; /* 金色 */
+            color: black !important;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- ***** Preloader Start ***** -->
+    <div id="js-preloader" class="js-preloader">
+        <div class="preloader-inner">
+            <span class="dot"></span>
+            <div class="dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+    <!-- ***** Preloader End ***** -->
+    <!-- 狀態提示：訪客/會員 -->
+    @* 顯示目前登入狀態，方便自我測試與 UX提升 *@
+    @* @if (isCustomerLoggedIn)
+    {
+        <div class="alert alert-success text-center my-2">
+            您已登入，歡迎使用會員專區功能！
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center my-2">
+            您目前為訪客，部分功能需登入才能使用。
+        </div>
+    } *@
+
+    <!-- Header -->
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg container-fluid py-2">
+            <a class="navbar-brand brand-logo" asp-area="CustomersArea" asp-controller="Home" asp-action="Index" aria-label="首頁">
+                <img src="~/images/logo.png" alt="logo" style="width:60px; height:60px;" />
+                <span class="fs-2">貓爪足跡</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="切換選單">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="nav">
+                <ul class="navbar-nav ms-auto mb-2 me-5 mb-lg-0 justify-content-between">
+                    <li class="nav-item border-end me-1 p-1"><a class="nav-link" href="#hotProducts" id="navTripLink"><span class="link-text">跟團行程</span></a></li>
+                    <li class="nav-item border-end me-1 p-1"><a class="nav-link" href="#featured-tickets" id="navLocaLink"><span class="link-text">景點門票</span></a></li>
+                    <li class="nav-item border-end me-1 p-1"><a class="nav-link" href="#featured-hotels" id="navHotelLink"><span class="link-text">住宿</span></a></li>
+                    <li class="nav-item border-end me-1 p-1"><a class="nav-link" href="#featured-transports" id="navTransLink"><span class="link-text">交通</span></a></li>
+                    <li class="nav-item border-end me-1 p-1"><a class="nav-link" href="#promotions"><span class="link-text">優惠活動</span></a></li>
+                    <!-- 幫助中心下拉選單 -->
+                    <li class="nav-item dropdown border-end me-1 p-1">
+                        <a class="nav-link dropdown-toggle" href="#" id="helpDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="link-text">幫助中心</span>
+                        </a>
+                        <ul class="dropdown-menu shadow-sm rounded-3" aria-labelledby="helpDropdown">
+                            <li>
+                                <a class="dropdown-item faq-nav-link" href="#faqSection">
+                                    <i class="fa-solid fa-circle-info me-2 text-primary"></i> 常見問題
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-area="CustomersArea" asp-controller="Contact" asp-action="Index">
+                                    <i class="fa-solid fa-envelope me-2 text-primary"></i> 聯絡我們
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item p-1">
+                        <a class="nav-link" asp-controller="Travel" asp-action="index"><span class="link-text">自由行專區</span></a>
+                    </li>
+                </ul>
+                <div class="header-right d-flex align-items-center">
+                    <nav class="main-nav flex-grow-1">
+                        <ul class="nav align-items-center mb-0 w-100">
+                            @if (isCustomerLoggedIn)
+                            {
+                                @* <li class="nav-item ms-auto me-1">
+                                    <a href="#" class="nav-link">
+                                       <span class="link-text"><i class="fa-solid fa-calendar-check me-1"></i>每日簽到</span>
+                                    </a>
+                                </li> *@
+                                <li class="nav-item me-1 dropdown notification-dropdown position-relative">
+                                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="link-text"><i class="fa-solid fa-bell"></i> 通知</span>
+                                        <span id="notifBadge"
+                                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                              style="display:none; font-size:0.7rem;">
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu shadow p-0 notif-dropdown" data-bs-popper="none">
+                                        <div class="p-3 border-bottom fw-bold d-flex justify-content-between align-items-center">
+                                            <span>最新通知</span>
+                                            <button id="markAllReadBtnNavbar"
+                                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 py-0"
+                                                    style="font-size:0.8rem;">
+                                                全部已讀
+                                            </button>
+                                        </div>
+                                        <div id="notifList" class="overflow-auto" style="max-height:400px; max-width:320px;">
+                                            <div class="text-center text-muted py-3">目前沒有通知</div>
+                                        </div>
+                                        <div class="p-2 text-center border-top" style="cursor:pointer"
+                                             onclick="window.location.href='/CustomersArea/Notifications/Index'">
+                                            <span class="text-decoration-none small text-primary">查看所有通知</span>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="nav-item me-1">
+                                    <a href="/CustomersArea/Cart" class="nav-link">
+                                        <span class="link-text"><i class="fa-solid fa-cart-shopping me-1"></i>購物車</span><span class="badge bg-danger" id="cart-count">0</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                        <span class="link-text">
+                                            <i class="fa-solid fa-user me-1"></i>
+                                            @if (isCustomerLoggedIn)
+                                            {
+                                                @customerName
+                                                @if (!string.IsNullOrEmpty(customerLevelName))
+                                                {
+                                                    
+                                                    <span class="badge @levelClass ms-1">@customerLevelName</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @:會員中心
+                                            }
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end mt-2 shadow user-dropdown">
+                                        <li>
+                                            <a class="dropdown-item" href="/CustomersArea/Orders/Index">
+                                                <i class="fa-solid fa-file-invoice me-2"></i> 訂單紀錄
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="CustomersArea" asp-controller="CustomerService" asp-action="Index">
+                                                <i class="fa-solid fa-headset me-2"></i> 客服中心
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="CustomersArea" asp-controller="CusLogReg" asp-action="EditProfile">
+                                                <i class="fa-solid fa-user-pen me-2"></i> 會員資料
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="CustomersArea" asp-controller="CusLogReg" asp-action="ResetPasswordIslogin">
+                                                <i class="fa-solid fa-key me-2"></i> 變更密碼
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="CustomersArea" asp-controller="Coupons" asp-action="Index">
+                                                <i class="fa-solid fa-ticket me-2"></i> 我的優惠券
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="CustomersArea" asp-controller="Favorites" asp-action="List">
+                                                <i class="fa-solid fa-heart me-2"></i> 我的收藏
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="/CustomersArea/cus-join.html">
+                                                <i class="fa-solid fa-users-viewfinder me-2"></i> 加入群組
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li class="d-flex justify-content-end pe-2">
+                                            <form asp-action="Logout" asp-controller="CusLogReg" asp-area="CustomersArea" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="dropdown-item text-danger d-inline-flex align-items-center"
+                                                        style="background:none;border:none;width:auto;">
+                                                    <span class="text-danger me-2">登出</span>
+                                                    <i class="fa-solid fa-right-from-bracket" style="color:#dc3545"></i>
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item ms-auto d-flex gap-2">
+                                    <a href="/CustomersArea/CusLogReg/Login" class="btn btn-outline-primary rounded-pill">登入</a>
+                                    <a href="/CustomersArea/CusLogReg/Register" class="btn btn-outline-primary rounded-pill">註冊</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container-fluid p-0">
+        @RenderBody()
+    </div>
+
+    <!-- Footer -->
+    <footer class="cat-footer">
+        <div class="cat-footer-inner container py-5">
+            <div class="row gy-4">
+                <!-- 品牌 -->
+                <div class="col-12 col-md-4">
+                    <div class="footer-brand">
+                        <img src="~/images/logo.png" alt="logo" class="footer-logo">
+                        <h4 class="mt-2 fw-bold text-white">貓爪足跡</h4>
+                        <p class="small text-light">
+                            帶著毛孩一起出遊吧！探索最可愛、最溫暖的旅程體驗。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 導覽連結 -->
+                <div class="col-6 col-md-2">
+                    <h6 class="footer-title">探索</h6>
+                    <ul class="footer-links list-unstyled small">
+                        <li><a href="#">熱門行程</a></li>
+                        <li><a href="#">住宿推薦</a></li>
+                        <li><a href="#">交通票券</a></li>
+                        <li><a href="#">主題企劃</a></li>
+                    </ul>
+                </div>
+
+                <!-- 幫助中心 -->
+                <div class="col-6 col-md-2">
+                    <h6 class="footer-title">幫助中心</h6>
+                    <ul class="footer-links list-unstyled small">
+                        <li><a href="/CustomersArea/FAQs/Index">常見問題</a></li>
+                        <li><a href="/CustomersArea/Contact/Index">聯絡我們</a></li>
+                        <li><a href="#">訂單查詢</a></li>
+                        <li><a href="#">退款政策</a></li>
+                    </ul>
+                </div>
+
+                <!-- 聯絡 / 社群 -->
+                <div class="col-12 col-md-4">
+                    <h6 class="footer-title">追蹤我們</h6>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                    <p class="small mt-3 text-light">
+                        客服信箱：<a href="mailto:service@catpaw.com.tw" class="text-white">service@catpaw.com.tw</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom text-center text-light py-3 small">
+            <div>© 2025 貓爪足跡 | 由 FUEN43 Group 2 製作 🐾</div>
+        </div>
+
+        <!-- 背景裝飾 -->
+        <div class="footer-paw-bg"></div>
+    </footer>
+
+
+    <!-- Back to top -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fa-solid fa-paw"></i>
+    </div>
+
+
+
+
+    <!-- Scripts -->
+    <!-- jQuery  -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Popper & Bootstrap  -->
+    <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 外部功能庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
+    <!-- 專案 JS -->
+    <script src="~/front-end/assets/js/isotope.min.js"></script>
+    <script src="~/front-end/assets/js/owl-carousel.js"></script>
+    <script src="~/front-end/assets/js/tabs.js"></script>
+    <script src="~/front-end/assets/js/popup.js"></script>
+    <script src="~/front-end/assets/js/custom.js"></script>
+    <script src="~/front-end/assets/js/webFront.js"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

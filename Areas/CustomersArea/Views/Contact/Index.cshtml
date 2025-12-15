@@ -1,0 +1,141 @@
+﻿@model Cat_Paw_Footprint.Areas.CustomersArea.Controllers.ContactFormVm
+@{
+    ViewData["Title"] = "聯絡我們";
+}
+
+<div id="contactApp" class="contact-page container py-5">
+    <div class="floating-paws" aria-hidden="true">
+        <span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card contact-card shadow border-0 rounded-4 mx-auto">
+                <div class="card-header text-white fw-bold py-2 d-flex justify-content-between align-items-center"
+                     style="background: linear-gradient(90deg,#7ec8e3 20%,#22b3c1 100%); font-size: 1.1rem;">
+                    <div><i class="fa-solid fa-envelope-open-text me-2"></i> 聯絡我們</div>
+                    <button type="button" class="btn btn-sm btn-light text-primary rounded-pill fw-semibold"
+                            v-on:click ="autoFill">
+                        <i class="fa-solid fa-rocket me-1"></i>
+                    </button>
+                </div>
+
+
+                <div class="card-body p-3">
+                    <p class="text-secondary mb-3 small">
+                        有任何問題或建議嗎？請填寫以下表單，我們會盡快與您聯繫 💌
+                    </p>
+
+                    <form id="contactForm" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small"><i class="fa-solid fa-user"></i> 姓名</label>
+                            <input type="text" v-model="form.name" class="form-control rounded-pill py-2">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small"><i class="fa-solid fa-envelope"></i> 電子郵件</label>
+                            <input type="email" v-model="form.email" class="form-control rounded-pill py-2">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small"><i class="fa-solid fa-pen-to-square"></i> 主旨</label>
+                            <input type="text" v-model="form.subject" class="form-control rounded-pill py-2">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small"><i class="fa-solid fa-comment-dots"></i> 訊息內容</label>
+                            <textarea v-model="form.message" class="form-control rounded-4 shadow-sm small" rows="4"></textarea>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-send px-4 py-2 rounded-pill fw-semibold small" :disabled="loading">
+                                <i v-if="!loading" class="fa-solid fa-paper-plane"></i>
+                                <i v-else class="fa-solid fa-spinner fa-spin"></i>
+                                {{ loading ? ' 寄送中...' : ' 寄出' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { 
+<script>
+const { createApp } = Vue;
+
+createApp({
+    data() {
+        return {
+            form: { name: '', email: '', subject: '', message: '' },
+            loading: false
+        };
+    },
+    methods: {
+        async sendForm(e) {
+            e.preventDefault();
+            console.log("🚀 sendForm triggered");
+
+            if (!this.form.name.trim()) {
+                window.showAlert('warning', '提醒', '請輸入您的姓名');
+                return;
+            }
+            if (!this.form.email.trim()) {
+                window.showAlert('warning', '提醒', '請輸入您的 Email');
+                return;
+            }
+
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            if (!emailRegex.test(this.form.email.trim())) {
+                window.showAlert('warning', '提醒', '請輸入有效的 Email 格式，例如：catpaw@example.com');
+                return;
+            }
+
+            if (!this.form.subject.trim()) {
+                window.showAlert('warning', '提醒', '請輸入主旨');
+                return;
+            }
+            if (!this.form.message.trim()) {
+                window.showAlert('warning', '提醒', '請輸入您的訊息內容');
+                return;
+            }
+
+            this.loading = true;
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const res = await axios.post('/CustomersArea/Contact/Send', this.form, {
+                    headers: { 'RequestVerificationToken': token }
+                });
+
+                if (res.data?.status === 'success') {
+                    window.showAlert('success', '寄信成功', '您的訊息已送出，我們會盡快回覆您！');
+                    this.form = { name: '', email: '', subject: '', message: '' };
+                } else {
+                    throw new Error(res.data?.message || '寄信失敗，請稍後再試');
+                }
+            } catch (err) {
+                console.error(err);
+                window.showAlert('error', '寄信失敗', err.message);
+            } finally {
+                this.loading = false;
+            }
+        },
+        autoFill() {
+            this.form.name = '喵星旅客';
+            this.form.email = 'jianlinwu290@gmail.com';
+            this.form.subject = '想了解客服功能';
+            this.form.message = '您好，我想諮詢一下客服中心的使用方式～';
+        }
+    },
+    mounted() {
+        const form = document.getElementById('contactForm');
+        if (form) {
+            form.addEventListener('submit', this.sendForm);
+        }
+    }
+}).mount('#contactApp');
+</script>
+
+}

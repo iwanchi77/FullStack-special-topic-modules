@@ -1,0 +1,149 @@
+﻿@model Cat_Paw_Footprint.Areas.CustomerService.Controllers.MailComposeVm
+@{
+    ViewData["Title"] = "發送 Email";
+}
+
+@section Styles {
+    <!-- CKEditor 套件 -->
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/46.1.0/ckeditor5.css" crossorigin>
+    <link href="~/js/myckeditor.js" rel="stylesheet" />
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 d-flex justify-content-center">
+            <div class="card shadow-sm rounded-3" style="width:100%; max-width:1100px;">
+                <div class="card-header bg-primary text-white fw-bold" style="background: linear-gradient(90deg,#7ec8e3 60%,#b4e1eb 100%);">
+                    <i class="fa-solid fa-paper-plane"></i> 客服發送 Email
+                </div>
+                <div class="card-body">
+                    <form id="mailForm" asp-action="Send" method="post" class="row g-3">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3 mt-5">
+                            <label asp-for="To" class="form-label fw-semibold"></label>
+                            <input asp-for="To" class="form-control" type="email" placeholder="輸入收件者 Email" required />
+                            <span asp-validation-for="To" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Subject" class="form-label fw-semibold">主旨</label>
+                            <input asp-for="Subject" class="form-control" placeholder="輸入主旨" required />
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">選擇範本</label>
+                            <select id="templateSelect" name="SelectedTemplate" class="form-select">
+                                @foreach (var tpl in Model.Templates)
+                                {
+                                    <option value="@tpl.Id" selected="@(tpl.Id == Model.SelectedTemplate)">@tpl.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Body" class="form-label fw-semibold">內容</label>
+                            <textarea asp-for="Body" class="form-control" id="editor" rows="12" placeholder="輸入內容（支援 HTML）"></textarea>
+                            <span asp-validation-for="Body" class="text-danger"></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a asp-area="CustomerService" asp-controller="CustomerSupportTickets" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-arrow-left"></i> 返回客服
+                            </a>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-paper-plane"></i> 送出
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- CKEditor -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/46.1.0/ckeditor5.umd.js" crossorigin></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/46.1.0/translations/zh.umd.js" crossorigin></script>
+    <script src="~/js/myckeditor.js"></script>
+
+    <script>
+        /* ======================================================
+           ✅ SweetAlert2 共用提示函式
+        ====================================================== */
+        function showAlert(type, title, text, timer = 2000) {
+            Swal.fire({
+                icon: type, // success, error, warning, info, question
+                title: title,
+                text: text,
+                timer: timer,
+                showConfirmButton: false,
+                timerProgressBar: true
+            });
+        }
+
+        /* ======================================================
+           🧩 套用範本：載入 CKEditor 內容
+        ====================================================== */
+        document.getElementById('templateSelect').addEventListener('change', function () {
+            const templateId = this.value;
+            fetch('@Url.Action("GetTemplateContent", "Mail")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `templateId=${encodeURIComponent(templateId)}`
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.ok && window.ckeditor) {
+                    window.ckeditor.setData(data.content);
+                    showAlert('info', '已套用範本', '內容已自動載入');
+                }
+            });
+        });
+
+        /* ======================================================
+           💌 送信前 SweetAlert2 確認
+        ====================================================== */
+        const form = document.getElementById('mailForm');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // 阻止預設送出行為
+
+            Swal.fire({
+                icon: 'question',
+                title: '確認發送郵件？',
+                text: '請確認收件者與內容是否正確。',
+                showCancelButton: true,
+                confirmButtonText: '確定發送',
+                cancelButtonText: '取消',
+                reverseButtons: true,
+                focusCancel: true
+            }).then(result => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: '寄送中...',
+                        text: '系統正在發送郵件，請稍候。',
+                        didOpen: () => Swal.showLoading(),
+                        allowOutsideClick: false
+                    });
+
+                    // 模擬提交表單
+                    form.submit();
+                }
+            });
+        });
+
+        /* ======================================================
+           ✉️ Razor 傳入訊息後端提示
+        ====================================================== */
+        $(function () {
+            var msg = @Html.Raw(ViewBag.MailOk != null ? "JSON.stringify('" + ViewBag.MailOk.Replace("'", "\\'") + "')" : "null");
+            if (msg) {
+                let type = msg.indexOf('失敗') > -1 ? 'error' : 'success';
+                let title = type === 'error' ? '發送失敗' : '發送成功';
+                showAlert(type, title, msg);
+            }
+        });
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

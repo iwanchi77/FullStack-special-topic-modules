@@ -1,0 +1,1518 @@
+@{
+    ViewData["Title"] = "首頁";
+    var isHomePage =
+        string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Home", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(ViewContext.RouteData.Values["action"]?.ToString(), "Index", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(ViewContext.RouteData.Values["area"]?.ToString(), "CustomersArea", StringComparison.OrdinalIgnoreCase);
+}
+
+<script>
+    window.isHomePage = @(isHomePage.ToString().ToLower());
+</script>
+
+@section Styles {
+    <style>
+
+        /* --------------------------
+        全域：區塊標題（section title） - 用於各區塊的主標題 h2 與下方連接小條
+        -------------------------- */
+        .section-title h2 {
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .section-title > div {
+            width: 60px;
+            height: 3px;
+            background: #7ec8e3;
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        /* --------------------------
+        🐾 Section Card 卡片風格
+        -------------------------- */
+        .section-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            padding: 1.8rem 1.5rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.35s ease;
+        }
+
+            .section-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 22px rgba(0, 0, 0, 0.10);
+            }
+
+        /* 卡片之間的呼吸空間 */
+        .section {
+            padding: 0.1rem 0;
+        }
+            /* 交錯柔光背景層（保持層次） */
+            .section:nth-child(even) {
+                background: linear-gradient(180deg, #f9fcff 0%, #ffffff 100%);
+            }
+
+            .section:nth-child(odd) {
+                background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            }
+
+        /* 💡RWD：平板＆手機 */
+        @@media (max-width: 992px) {
+            .section-card
+
+        {
+            padding: 1.5rem;
+            margin: 1.5rem 1rem;
+            border-radius: 16px;
+        }
+
+        }
+        @@media (max-width: 768px) {
+            .section-card
+
+        {
+            padding: 1.3rem;
+            margin: 1.2rem 0.8rem;
+            border-radius: 14px;
+        }
+
+        }
+        /* --------------------------
+        Hero / Banner - 大背景圖、淡入縮放效果
+        -------------------------- */
+        .hero {
+            position: relative;
+            max-height: 600px;
+            height: 60vh;
+            min-height: 400px;
+            border-radius: 0 0 40px 40px;
+            overflow: hidden;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        #heroMedia {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.65) saturate(1.15);
+            transition: transform 0.8s ease, filter 1s ease;
+        }
+
+        .hero:hover #heroMedia {
+            transform: scale(1.05);
+            filter: brightness(0.75);
+        }
+        /* 💡RWD：縮小高度 */
+        @@media (max-width: 768px) {
+            .hero
+
+        {
+            height: 50vh;
+            min-height: 320px;
+        }
+
+        }
+        @@media (max-width: 576px) {
+            .hero
+
+        {
+            height: 45vh;
+            min-height: 280px;
+        }
+
+        }
+        /* --------------------------
+            飄浮貓掌（裝飾）
+            - pointer-events: none 避免遮擋互動
+            - 使用 keyframes pawFloat 做上下移動與淡入淡出
+        -------------------------- */
+        .floating-paws {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+            .floating-paws span {
+                position: absolute;
+                font-size: 2rem;
+                opacity: 0.15;
+                animation: pawFloat 10s linear infinite;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            }
+
+                .floating-paws span:nth-child(1) {
+                    left: 15%;
+                    animation-duration: 12s;
+                    animation-delay: 0s;
+                    font-size: 2.3rem;
+                }
+
+                .floating-paws span:nth-child(2) {
+                    left: 45%;
+                    animation-duration: 15s;
+                    animation-delay: 3s;
+                    font-size: 2rem;
+                }
+
+                .floating-paws span:nth-child(3) {
+                    left: 75%;
+                    animation-duration: 13s;
+                    animation-delay: 6s;
+                    font-size: 2.6rem;
+                }
+        @@keyframes pawFloat {
+            0%
+
+        {
+            transform: translateY(100%) rotate(0deg) scale(1);
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 0.2;
+        }
+
+        50% {
+            transform: translateY(-50%) rotate(15deg) scale(1.1);
+            opacity: 0.25;
+        }
+
+        90% {
+            opacity: 0.15;
+        }
+
+        100% {
+            transform: translateY(-120%) rotate(-15deg) scale(1);
+            opacity: 0;
+        }
+
+        }
+        /* 手機：貓掌縮小並延長動畫，使視覺不會搶到搜尋列 */
+        @@media (max-width: 768px) {
+            .floating-paws span
+
+        {
+            font-size: 1.6rem;
+            animation-duration: 14s;
+        }
+
+        }
+
+        /* --------------------------
+            搜尋列（Search wrapper）與輸入元件
+            - 包含 tabs、輸入欄、按鈕與內嵌人數控制
+        -------------------------- */
+        .search-wrapper {
+            position: relative;
+            top: 25%;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1100px;
+            max-height: 400px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(6px);
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+            padding: 18px;
+            z-index: 1000;
+        }
+
+            .search-wrapper h1 {
+                font-weight: 700;
+                text-align: center;
+                margin-bottom: 1.2rem;
+                letter-spacing: 1px;
+            }
+
+        .search-tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 1.2rem;
+        }
+
+        .search-tab {
+            padding: 6px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #555;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(126, 200, 227, 0.3);
+            transition: all 0.25s ease;
+        }
+
+            .search-tab.active {
+                background: linear-gradient(135deg, #7ec8e3, #22b3c1);
+                color: #fff;
+                box-shadow: 0 4px 10px rgba(34,179,193,0.3);
+            }
+
+        .search-box {
+            display: grid;
+            grid-template-columns: 2.2fr 2.2fr 1.6fr 140px;
+            gap: 12px;
+        }
+
+        .search-select {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(200, 225, 240, 0.8);
+            border-radius: 14px;
+            padding: 12px 16px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+            .search-select:focus-within {
+                border-color: #7ec8e3;
+            }
+
+        .search-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-weight: 600;
+            color: #222;
+        }
+
+            .search-input::placeholder {
+                color: #6b7d90;
+                font-weight: 500;
+            }
+
+        .search-btn {
+            background: linear-gradient(135deg, #7ec8e3, #22b3c1);
+            color: #fff;
+            font-weight: 700;
+            border: none;
+            padding: 14px 0;
+            transition: all 0.3s ease;
+        }
+
+            .search-btn:hover {
+                background: linear-gradient(135deg, #22b3c1, #7ec8e3);
+                box-shadow: 0 4px 12px rgba(34, 179, 193, 0.4);
+            }
+        /* --------------------------
+          建議面板（dropdown-panel）與建議項目
+          - 面板會被 JS 移到 body，CSS 只負責外觀
+        -------------------------- */
+        .dropdown-panel {
+            position: absolute;
+            z-index: 9999;
+            background: #fff;
+            border: 1px solid #dbe7ef;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            width: 100%;
+            max-height: 260px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            font-size: 0.95rem;
+        }
+
+            .dropdown-panel::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .dropdown-panel::-webkit-scrollbar-thumb {
+                background-color: rgba(126, 200, 227, 0.5);
+                border-radius: 4px;
+            }
+
+                .dropdown-panel::-webkit-scrollbar-thumb:hover {
+                    background-color: rgba(126, 200, 227, 0.8);
+                }
+        /* 💡RWD：平板 */
+        @@media (max-width: 992px) {
+            .search-wrapper {
+                top: auto;
+                bottom: 40px;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(6px);
+                border-radius: 18px;
+                padding: 16px 14px;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .search-box {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .search-select {
+                padding: 10px 12px;
+                font-size: 0.95rem;
+                border-radius: 12px;
+            }
+
+            .search-btn {
+                grid-column: span 2;
+                padding: 12px 0;
+            }
+
+        }
+
+        /* 💡RWD：手機版（768px 以下） */
+        @@media (max-width: 768px) {
+            .hero {
+                height: auto;
+                padding-bottom: 120px; /* 預留 hero 高度空間給搜尋框 */
+            }
+            .search-wrapper
+
+            {
+                position: absolute;
+                left: 50%;
+                bottom: 20px;
+                transform: translateX(-50%);
+                width: calc(100% - 28px);
+                max-width: 460px;
+                padding: 14px 12px;
+                border-radius: 18px;
+                background: rgba(255, 255, 255, 0.92);
+                box-sizing: border-box;
+                backdrop-filter: blur(6px);
+            }
+
+            .search-box {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                align-items: center;
+            }
+
+            .search-select {
+                padding: 8px 12px;
+                font-size: 0.95rem;
+                border-radius: 12px;
+            }
+
+            .search-btn {
+                padding: 10px 0;
+                font-size: 1rem;
+                border-radius: 12px;
+            }
+
+        }
+
+
+        /* 💡RWD：小手機（576px 以下） */
+        @@media (max-width: 576px) {
+            .hero {
+                height: auto;
+                min-height: 460px; /* 稍微加高一點 */
+                padding-top: 40px; /* 標題與上方空間 */
+                padding-bottom: 140px; /* 搜尋列預留空間 */
+            }
+
+            .search-wrapper {
+                position: absolute;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 24px);
+                max-width: 430px;
+                background: rgba(255, 255, 255, 0.96);
+                border-radius: 16px;
+                padding: 16px 14px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            }
+
+            .search-box {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                align-items: center;
+            }
+
+            .search-select {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 10px;
+                font-size: 0.9rem;
+                border-radius: 10px;
+                border: 1px solid #e2e8f0;
+                background-color: #fff;
+                min-height: 42px;
+            }
+            /* 「人數選擇」區塊微調 */
+            #peopleInput, .people-label {
+                font-size: 0.85rem !important; /* 2 位旅客 變小 */
+                font-weight: 500;
+            }
+            /* + - 按鈕縮小 */
+            .people-controls button {
+                width: 26px !important;
+                height: 26px !important;
+                font-size: 0.9rem !important;
+                border-radius: 8px;
+                background: #f1f5f9;
+                border: 1px solid #d1d5db;
+                color: #333;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all .2s ease;
+            }
+
+                .people-controls button:hover {
+                    background: #e0f7fa;
+                    border-color: #7ec8e3;
+                    color: #22b3c1;
+                }
+
+            .search-btn {
+                grid-column: span 3;
+                width: 100%;
+                font-size: 0.95rem;
+                padding: 10px 0;
+                border-radius: 10px;
+                margin-top: 4px;
+                justify-self: end;
+            }
+            /* 標題微縮，讓 hero 更平衡 */
+            .search-wrapper h1 {
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+                text-align: center;
+            }
+            /* Tab 排列緊湊一點 */
+            .search-tabs {
+                gap: 6px;
+                margin-bottom: 1rem;
+            }
+
+            .search-tab {
+                padding: 4px 14px;
+                font-size: 0.9rem;
+            }
+
+            .dropdown-panel {
+                width: calc(80vw - 40px) !important; /* 留安全邊距 */
+                left: 50% !important;
+                transform: translateX(-50%);
+                font-size: 0.9rem;
+                padding: 8px;
+                border-radius: 10px;
+                max-height: 220px;
+            }
+
+                .dropdown-panel div,
+                .dropdown-panel li {
+                    padding: 6px 8px;
+                }
+        }
+
+  
+        @@keyframes dropdownFade {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .suggest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 8px;
+        }
+
+        .suggest-item {
+            cursor: pointer;
+            padding: 8px 10px;
+            border: 1px solid #eef3fb;
+            border-radius: 10px;
+            background: #fafcff;
+            font-size: 0.95rem;
+        }
+
+            .suggest-item:hover {
+                background: #e6f8fc;
+                border-color: #b4e3f0;
+                box-shadow: 0 0 6px rgba(126, 200, 227, 0.25);
+                transform: translateY(-2px);
+            }
+
+        /* --------------------------
+         人數內嵌控制（people-inline）
+        -------------------------- */
+        .people-inline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .people-inline .ctrl {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .people-inline button {
+                width: 32px;
+                height: 32px;
+                line-height: 30px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+        /* 讓 people 欄位高度與其他 search-select 一致 */
+        .search-select .people-inline {
+            height: 100%;
+        }
+        /* 讓數字與按鈕內容不會撐大高度 */
+        .people-inline span,
+        .people-inline .ctrl * {
+            line-height: 1.2;
+        }
+
+        /* --------------------------
+         Swiper 導覽按鈕（小圓按鈕樣式）
+        -------------------------- */
+        .swiper-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all .25s;
+            color: #7ec8e3;
+        }
+
+            .swiper-btn:hover {
+                background: #7ec8e3;
+                color: #fff;
+                box-shadow: 0 4px 10px rgba(34,179,193,0.4);
+            }
+
+        .swiper-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --------------------------
+          商品標題限制（避免高度不一）
+        -------------------------- */
+        .product-title {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            word-break: break-word;
+            min-height: 3em;
+        }
+
+        /* --------------------------
+            Section / container stacking
+            - 確保搜尋列在上層（避免被後面區塊蓋過）
+        -------------------------- */
+        .section, .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --------------------------
+            FAQ（常見問題）專屬樣式
+            - 問題/答案的折疊顯示效果
+        -------------------------- */
+        /* #faqSection {
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        } */
+
+        .faq-item {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid #d8ebff;
+        }
+
+            .faq-item:hover {
+                transform: scale(1.01);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            }
+
+        .faq-question {
+            background: linear-gradient(90deg, #e9f9ff 0%, #f5fbff 100%);
+            color: #208aac;
+            font-weight: 600;
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background .3s, color .3s;
+        }
+
+            .faq-question i {
+                transition: transform .3s ease;
+                color: #7ec8e3;
+            }
+
+        .faq-item.active .faq-question {
+            background: linear-gradient(90deg, #dff1ff, #f4faff);
+            color: #226dd3;
+        }
+
+            .faq-item.active .faq-question i {
+                transform: rotate(180deg);
+            }
+
+        .faq-answer {
+            padding: 1.2rem 1.5rem;
+            color: #444;
+            display: none;
+            background: #fff;
+            border-top: 1px solid #d8ebff;
+            font-size: 1rem;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+            animation: fadeIn .4s ease;
+        }
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+        @@media (max-width: 768px) {
+            .faq-question
+
+        {
+            font-size: 1rem;
+            padding: 1rem 1.2rem;
+        }
+
+        .faq-answer {
+            font-size: 0.95rem;
+            padding: 1rem 1.2rem;
+        }
+
+        }
+        /* 💡RWD：手機縮排與字級 */
+        @@media (max-width: 576px) {
+            .faq-question
+
+        {
+            font-size: 1rem;
+            padding: 0.8rem 1rem;
+        }
+
+        .faq-answer {
+            font-size: 0.9rem;
+            padding: 0.8rem 1rem;
+        }
+
+        }
+        /* 熱門產品card */
+        /* 統一產品卡樣式（修正版） */
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+
+            .product-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 22px rgba(0, 0, 0, 0.1);
+            }
+
+        /* 確保圖片固定高度，不撐開卡片 */
+        .product-thumb img {
+            display: block;
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        /* 內容區塊撐滿剩餘空間 */
+        .product-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(180deg, #f9fcff 0%, #ffffff 100%);
+        }
+
+        /* 限制標題行數 */
+        .product-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            min-height: 4em;
+        }
+
+        .swiper-wrapper {
+            padding:10px; /* 上右下左 */
+        }
+
+    </style>
+}
+
+<!-- Hero -->
+<!-- ===== Hero / Banner ===== -->
+<section class="hero mt-3">
+    <img src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?q=80&w=1800&auto=format&fit=crop" alt="帶貓旅行的海邊日落" id="heroMedia" />
+
+    <!-- Trip.com 風格搜尋列 -->
+    <div class="search-wrapper">
+        <h1 class="display-6 fw-bolder mb-3">帶著毛孩去旅行，探索下一站</h1>
+        <!-- 分類 Tab -->
+        <div class="search-tabs">
+            <div class="search-tab active" data-type="trip">套裝行程</div>
+            <div class="search-tab" data-type="hotel">住宿</div>
+            <div class="search-tab" data-type="ticket">景點門票</div>
+            <div class="search-tab" data-type="car">租車</div>
+        </div>
+
+        <!-- 搜尋表單（跳轉到後端搜尋） -->
+        <form asp-area="CustomersArea" asp-controller="Products" asp-action="Search" method="get" id="topSearchForm">
+            <input type="hidden" name="type" id="searchType" value="trip" />
+            <input type="hidden" name="start" id="startDate" />
+            <input type="hidden" name="end" id="endDate" />
+            <input type="hidden" name="people" id="peopleInput" value="2" />
+
+            <div class="search-box">
+                <!-- 目的地（可輸入 + 建議；點選後會關閉下拉） -->
+                <div class="search-select" id="destSelect">
+                    <label class="float-label">目的地</label>
+                    <input type="text" class="search-input" id="destinationInput" name="destination"
+                           placeholder="請輸入或選擇目的地" autocomplete="off" />
+                    <div class="dropdown-panel" id="destPanel">
+                        <div class="mb-2 fw-bold">熱門目的地</div>
+                        <div class="suggest-grid" id="destSuggest"></div>
+                    </div>
+                </div>
+
+                <!-- 日期（daterangepicker：起訖 + 時間） -->
+                <div class="search-select">
+                    <label class="float-label" id="dateTitle">出發時間-返程時間</label>
+                    <input type="text" class="search-input" id="dateLabel" placeholder="選擇日期與時間" autocomplete="off" />
+                </div>
+
+                <!-- 旅客數（內嵌控制，無下拉） -->
+                <div class="search-select">
+                    <label class="float-label">人數</label>
+                    <div class="people-inline">
+                        <span class="fw-semibold" id="peopleLabel"><span class="fw-semibold" id="peopleCount">2</span> 位旅客</span>
+                        <div class="ctrl">
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded" id="minus"><i class="fa-solid fa-minus"></i></button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded" id="plus"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 搜尋 -->
+                <button type="submit" class="btn btn-outline-primary search-btn">搜尋</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 飄浮貓掌裝飾 -->
+    <div class="floating-paws" aria-hidden="true">
+        <span>🐾</span><span>🐾</span><span>🐾</span>
+    </div>
+</section>
+
+<!-- 為你精選熱門行程 -->
+<section class="section" id="hotProducts" v-cloak>
+    <div class="section-card">
+        <div class="container" id="hot-app">
+            <div class="section-title text-center mb-4">
+                <h2 class="fw-bold" style="letter-spacing:2px">
+                    <i class="fa-solid fa-paw me-2"></i>精選熱門行程
+                </h2>
+                <div style="width:60px; height:3px; background:#7ec8e3; margin:10px auto 0; border-radius:2px;"></div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="@Url.Action("Browse", "Products", new { area = "CustomersArea", type = "trip" })" class="btn btn-outline-primary rounded-pill fw-bold">
+                    查看所有行程 <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+                <div class="swiper-nav d-flex align-items-center gap-2">
+                    <div class="swiper-btn hot-prev"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div class="swiper-btn hot-next"><i class="fa-solid fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <!-- Swiper -->
+            <div class="swiper hot-swiper" aria-label="熱門商品輪播">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" v-for="p in items" :key="p.productID">
+                        <article class="product-card shadow-sm d-flex flex-column h-100">
+                            <div class="product-thumb position-relative">
+                                <img :src="p.cover" class="w-100" :alt="p.productName">
+                                <span class="badge bg-info position-absolute top-0 start-0 m-2">🔥 熱門</span>
+
+                                <!-- ❤️ 收藏（Vue 綁定語法） -->
+                                <button type="button" class="fav-float"
+                                        :data-product-id="p.productID" aria-pressed="false" title="加入收藏">
+                                    <i class="fa-solid fa-heart"></i>
+                                </button>
+                            </div>
+
+                            <div class="product-body p-3 d-flex flex-column justify-content-between flex-grow-1">
+                                <div>
+                                    <h5 class="fw-bold mb-1 product-title">{{ p.productName }}</h5>
+                                    <p class="text-muted mb-1">
+                                        <i class="fa-solid fa-location-dot me-1 text-secondary"></i>{{ p.region }}
+                                    </p>
+                                    <div class="fw-bold text-primary">NT$ {{ p.price }} 起</div>
+                                </div>
+
+                                <a :href="'/CustomersArea/Products/Details/' + p.productID"
+                                   class="btn btn-outline-primary w-100 rounded-pill fw-bold mt-2">
+                                    查看詳情
+                                    <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 精選住宿 -->
+<section class="section" id="featured-hotels" v-cloak>
+    <div class="section-card">
+        <div class="container" id="hotels-app">
+            <div class="section-title text-center mb-4">
+                <h2 class="fw-bold" style="letter-spacing:2px">
+                    <i class="fa-solid fa-bed me-2"></i>精選住宿
+                </h2>
+                <div style="width:60px;height:3px;background:#7ec8e3;margin:10px auto 0;border-radius:2px;"></div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="@Url.Action("Browse", "Products", new { area = "CustomersArea", type = "hotel" })" class="btn btn-outline-primary rounded-pill fw-bold">
+                    查看所有住宿 <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+                <div class="swiper-nav d-flex align-items-center gap-2">
+                    <div class="swiper-btn hotel-prev"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div class="swiper-btn hotel-next"><i class="fa-solid fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <div class="swiper hotels-swiper" aria-label="精選住宿">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" v-for="p in items" :key="p.productID">
+                        <article class="product-card shadow-sm">
+                            <div class="product-thumb position-relative">
+                                <img :src="p.cover" class="w-100 rounded-top" :alt="p.productName">
+                                <span class="badge bg-info position-absolute top-0 start-0 m-2">🏨 精選</span>
+                            </div>
+                            <div class="product-body p-3">
+                                <h5 class="fw-bold mb-1 product-title">{{ p.productName }}</h5>
+                                <p class="text-muted mb-1"><i class="fa-solid fa-location-dot me-1 text-secondary"></i>{{ p.region }}</p>
+                                <div class="fw-bold text-primary">NT$ {{ p.price }} 起</div>
+                            </div>
+                            <!-- 新增 查看詳情按鈕 -->
+                            <a :href="'/CustomersArea/Products/Details/' + p.productID"
+                               class="btn btn-outline-primary w-100 rounded-pill fw-bold">
+                                查看詳情
+                                <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 精選景點門票 -->
+<section class="section" id="featured-tickets" v-cloak>
+    <div class="section-card">
+        <div class="container" id="tickets-app">
+            <div class="section-title text-center mb-4">
+                <h2 class="fw-bold" style="letter-spacing:2px">
+                    <i class="fa-solid fa-ticket me-2"></i>精選景點門票
+                </h2>
+                <div style="width:60px;height:3px;background:#7ec8e3;margin:10px auto 0;border-radius:2px;"></div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="@Url.Action("Browse", "Products", new { area = "CustomersArea", type = "ticket" })" class="btn btn-outline-primary rounded-pill fw-bold">
+                    查看所有門票 <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+                <div class="swiper-nav d-flex align-items-center gap-2">
+                    <div class="swiper-btn ticket-prev"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div class="swiper-btn ticket-next"><i class="fa-solid fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <div class="swiper tickets-swiper" aria-label="精選景點門票">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" v-for="p in items" :key="p.productID">
+                        <article class="product-card shadow-sm">
+                            <div class="product-thumb position-relative">
+                                <img :src="p.cover" class="w-100 rounded-top" :alt="p.productName">
+                                <span class="badge bg-info position-absolute top-0 start-0 m-2">🎟️ 熱賣</span>
+                            </div>
+                            <div class="product-body p-3">
+                                <h5 class="fw-bold mb-1 product-title">{{ p.productName }}</h5>
+                                <p class="text-muted mb-1"><i class="fa-solid fa-location-dot me-1 text-secondary"></i>{{ p.region }}</p>
+                                <div class="fw-bold text-primary">NT$ {{ p.price }} 起</div>
+                                <!-- 新增 查看詳情按鈕 -->
+                                <a :href="'/CustomersArea/Products/Details/' + p.productID"
+                                   class="btn btn-outline-primary w-100 rounded-pill fw-bold">
+                                    查看詳情
+                                    <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 精選交通 -->
+<section class="section" id="featured-transports" v-cloak>
+    <div class="section-card">
+        <div class="container" id="transports-app">
+            <div class="section-title text-center mb-4">
+                <h2 class="fw-bold" style="letter-spacing:2px">
+                    <i class="fa-solid fa-car-side me-2"></i>精選交通
+                </h2>
+                <div style="width:60px;height:3px;background:#7ec8e3;margin:10px auto 0;border-radius:2px;"></div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="@Url.Action("Browse", "Products", new { area = "CustomersArea", type = "car" })" class="btn btn-outline-primary rounded-pill fw-bold">
+                    查看所有交通 <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+                <div class="swiper-nav d-flex align-items-center gap-2">
+                    <div class="swiper-btn transport-prev"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div class="swiper-btn transport-next"><i class="fa-solid fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <div class="swiper transports-swiper" aria-label="精選交通">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" v-for="p in items" :key="p.productID">
+                        <article class="product-card shadow-sm">
+                            <div class="product-thumb position-relative">
+                                <img :src="p.cover" class="w-100 rounded-top" :alt="p.productName">
+                                <span class="badge bg-info position-absolute top-0 start-0 m-2">🚗 熱門</span>
+                            </div>
+                            <div class="product-body p-3">
+                                <h5 class="fw-bold mb-1 product-title">{{ p.productName }}</h5>
+                                @* <p class="text-muted mb-1"><i class="fa-solid fa-location-dot me-1 text-secondary"></i>{{ p.region }}</p> *@
+                                <div class="fw-bold text-primary">NT$ {{ p.price }} 起</div>
+                                <!-- 新增 查看詳情按鈕 -->
+                                <a :href="'/CustomersArea/Products/Details/' + p.productID"
+                                   class="btn btn-outline-primary w-100 rounded-pill fw-bold">
+                                    查看詳情
+                                    <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- 最新優惠活動 -->
+<section class="section" id="promotions" v-cloak>
+    <div class="section-card">
+        <div class="container" id="promotion-app">
+            <div class="section-title text-center mb-4">
+                <h2 class="fw-bold" style="letter-spacing:2px">
+                    <i class="fa-solid fa-bullhorn me-2"></i>最新優惠活動
+                </h2>
+                <div style="width:60px;height:3px;background:#22B3C1;margin:10px auto 0;border-radius:2px;"></div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="/CustomersArea/Promotions/Index"
+                   class="btn btn-outline-primary rounded-pill fw-bold">
+                    查看所有優惠 <i class="fa-solid fa-arrow-right ms-2"></i>
+                </a>
+                <div class="swiper-nav d-flex align-items-center gap-2">
+                    <div class="swiper-btn promotion-prev"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div class="swiper-btn promotion-next"><i class="fa-solid fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <!-- ✅ 用 items.length 判斷 -->
+            <div v-if="items.length > 0">
+                <div class="swiper promotions-swiper" aria-label="最新優惠活動">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide" v-for="p in items" :key="p.promoID">
+                            <!-- 新增 查看詳情按鈕 -->
+                            <a :href="'/CustomersArea/Promotions/Details/' + p.promoID">
+                                <article class="product-card shadow-sm">
+                                    <div class="product-thumb position-relative">
+                                        <img :src="p.coverImage" class="w-100 rounded-top" :alt="p.promoName">
+                                        <span class="badge bg-warning position-absolute top-0 start-0 m-2">🔥 限時</span>
+                                    </div>
+                                    <div class="product-body p-3">
+                                        <h5 class="fw-bold mb-1 product-title">{{ p.promoName }}</h5>
+                                        <p class="text-muted small mb-1">
+                                            <i class="fa-regular fa-calendar me-1"></i>
+                                            {{ formatDate(p.startTime) }} - {{ formatDate(p.endTime) }}
+                                        </p>
+                                        <p class="small text-muted fw-bold text-primary">{{ p.promoSummary }}</p>
+                                        <span class="btn btn-outline-primary w-100 rounded-pill fw-bold">查看詳情 <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                                    </div>
+                                </article>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 無資料提示 -->
+            <div v-else class="text-center text-muted py-5">
+                <i class="bi bi-emoji-frown" style="font-size:2rem;"></i>
+                <p class="mt-2 mb-0">目前沒有進行中的優惠活動</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====================== 常見問題（ API 熱門資料） ====================== -->
+<section class="section" id="faqSection">
+    <div class="section-card">
+        <div class="container py-3">
+            <div class="section-title mb-4">
+                <h2 class="fw-bold text-center mb-2" style="letter-spacing:2px">
+                    <i class="fa-solid fa-circle-question me-2"></i> 常見問題
+                </h2>
+                <div style="width:60px; height:3px; background:#7ec8e3; margin:10px auto 0; border-radius:2px;"></div>
+            </div>
+
+            <div id="faqList"></div>
+
+            <div class="mt-4 text-center">
+                <a href="/CustomersArea/FrontFAQs/Index"
+                   class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold"
+                   style="letter-spacing:1px;">
+                    <i class="fa-solid fa-list-ul me-2"></i>查看更多常見問題
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Newsletter / CTA -->
+<section class="section">
+    <div class="container">
+        <div class="newsletter d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3 mb-5">
+            <div>
+                <h3 class="mb-1">訂閱最新旅遊優惠</h3>
+                <p class="mb-0">第一時間取得折扣碼、熱門活動與旅遊靈感。</p>
+            </div>
+            <form class="d-flex gap-2 w-100 w-lg-50" onsubmit="event.preventDefault(); alert('已訂閱！');">
+                <input type="email" class="form-control form-control-lg" placeholder="輸入你的 Email" required>
+                <button class="btn btn-dark btn-lg rounded-5">訂閱</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+
+
+@section Scripts {
+    <script>
+        // ✅ 初始化時搬出 dropdown-panel（確保不被 hero 包住）
+        document.addEventListener('DOMContentLoaded', () => {
+            const panel = document.getElementById('destPanel');
+            if (panel && panel.parentElement !== document.body) {
+                document.body.appendChild(panel);
+            }
+        });
+    </script>
+
+    <script>
+
+        // 共用：建立一個 Vue + Swiper 幫手
+        function mountFeatured(appId, apiUrl, swiperSelector, prevEl, nextEl){
+          const app = Vue.createApp({
+            data(){ return { items: [] }; },
+            methods: {
+              formatDate(d){
+                if(!d) return '';
+                return new Date(d).toLocaleDateString('zh-TW');
+                }
+            },
+            mounted(){
+              axios.get(apiUrl)
+                .then(res => { this.items = res.data || []; })
+                .then(() => this.$nextTick(() => {
+                  new Swiper(swiperSelector, {
+                    slidesPerView: 1.2,
+                    spaceBetween: 20,
+                    navigation: { prevEl, nextEl },
+                    preventClicks: false,            // ★ 允許 slide 內 click
+                    touchStartPreventDefault: false, // ★ 允許原生事件
+                    breakpoints: {
+                      576:{ slidesPerView:2 },
+                      768:{ slidesPerView:3 },
+                      992:{ slidesPerView:4 }
+                    }
+                  });
+                }))
+                .catch(err => console.error('載入失敗：', apiUrl, err));
+            }
+          });
+          app.mount(appId);
+        }
+
+        // 住宿 / 門票 / 交通 / 熱門行程載入
+        mountFeatured('#hot-app',    '/CustomersArea/Products/GetHotProducts',    '.hot-swiper',    '.hot-prev',    '.hot-next');
+        mountFeatured('#hotels-app',    '/CustomersArea/Products/GetFeaturedHotels',    '.hotels-swiper',    '.hotel-prev',    '.hotel-next');
+        mountFeatured('#tickets-app',   '/CustomersArea/Products/GetFeaturedTickets',   '.tickets-swiper',   '.ticket-prev',   '.ticket-next');
+        mountFeatured('#transports-app','/CustomersArea/Products/GetFeaturedTransports','.transports-swiper','.transport-prev','.transport-next');
+        mountFeatured('#promotion-app','/CustomersArea/Promotions/GetLatestPromotions','.promotions-swiper','.promotion-prev','.promotion-next');
+
+        // ====================== FAQ 熱門資料載入 ======================
+        document.addEventListener('DOMContentLoaded', async () => {
+            const faqListContainer = document.getElementById('faqList');
+            try {
+                const response = await axios.get('/CustomersArea/FrontFAQs/api/hot');
+                const faqs = response.data;
+
+                if (!faqs || faqs.length === 0) {
+                    faqListContainer.innerHTML = `
+                        <div class="text-center text-muted py-5">
+                            <i class="fa-solid fa-cat" style="font-size:2rem;"></i>
+                            <p class="mt-3">目前沒有熱門常見問題喔 🐾</p>
+                        </div>`;
+                    return;
+                }
+
+                let html = '';
+                faqs.forEach(faq => {
+                    html += `
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span><i class="fa-solid fa-paw me-2"></i>${faq.question}</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">${faq.answer}</div>
+                        </div>`;
+                });
+                faqListContainer.innerHTML = html;
+
+                const faqItems = document.querySelectorAll('.faq-item');
+                faqItems.forEach(item => {
+                    const q = item.querySelector('.faq-question');
+                    q.addEventListener('click', () => {
+                        faqItems.forEach(i => {
+                            if (i !== item) i.classList.remove('active');
+                        });
+                        item.classList.toggle('active');
+                    });
+                });
+            } catch (err) {
+                console.error('載入 FAQ 失敗：', err);
+                faqListContainer.innerHTML = `<div class="alert alert-danger">
+                    無法載入熱門常見問題，請稍後再試。
+                </div>`;
+            }
+
+            // 只有首頁才啟用滾動（避免其他頁誤觸）
+            if (window.isHomePage && window.location.hash === '#faqSection') {
+                const faqTarget = document.querySelector('#faqSection');
+                if (faqTarget) {
+                    setTimeout(() => {
+                        window.scrollTo({
+                            top: faqTarget.offsetTop - 60,
+                            behavior: 'smooth'
+                        });
+                    }, 400);
+                }
+            }
+        });
+
+    </script>
+
+    <!-- daterangepicker -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment/min/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+    <script>
+        // Tab 對應不同搜尋欄內容
+        const SEARCH_CONFIG = {
+          trip: {
+            destinationPlaceholder: "想去哪裡玩？（例：台北、新北、花蓮）",
+            dateLabel: "旅行日期",
+            peopleLabel: "人數"
+          },
+          hotel: {
+            destinationPlaceholder: "搜尋城市、區域或飯店名稱",
+            dateLabel: "入住 - 退房",
+            peopleLabel: "房客"
+          },
+          ticket: {
+            destinationPlaceholder: "搜尋景點或城市名稱",
+            dateLabel: "使用日期",
+            peopleLabel: "入場人數"
+          },
+          car: {
+            destinationPlaceholder: "取車地點（例：台北車站、高雄左營）",
+            dateLabel: "取車 - 還車日期",
+            peopleLabel: "乘客人數"
+          }
+        };
+
+        /* ===== 搜尋列互動（修正冒泡與面板關閉） ===== */
+        // Tab
+        $('.search-tab').on('click', function () {
+          $('.search-tab').removeClass('active');
+          $(this).addClass('active');
+          const type = $(this).data('type');
+          $('#searchType').val(type);
+
+          // ✅ 套用對照表更新 UI
+          $('#destinationInput').attr('placeholder', SEARCH_CONFIG[type].destinationPlaceholder);
+          $('#peopleLabel').text(SEARCH_CONFIG[type].peopleLabel + "： " + $('#peopleCount').text());
+
+          // ✅ 切換分類時重置旅客數
+          cnt = 2;
+          syncPeople();
+
+          // ✅ 切換時清除前面所選的內容
+          $('#destinationInput').val('');
+          $('#dateLabel').val('');
+          $('#startDate').val('');
+          $('#endDate').val('');
+          $('#peopleInput').val('2');
+        });
+
+        // 建議清單
+        const TW_DESTS = [
+          "台北","新北","桃園","新竹","台中","南投","台南","高雄","宜蘭","花蓮","台東","澎湖","金門","馬祖"
+        ];
+
+        function renderSuggest(list){
+          const box = $('#destSuggest').empty();
+          list.forEach(name=>{
+            $('<div>', {class:'suggest-item badge text-dark', text:name})
+              .appendTo(box)
+              .on('mousedown', function(e){ // 用 mousedown 先於 document 觸發
+                e.stopPropagation();
+                $('#destinationInput').val(name).trigger('change').blur();
+                closeAllDropdowns();
+              });
+          });
+        }
+        renderSuggest(TW_DESTS);
+
+        function openDest() {
+              const input = document.getElementById('destinationInput');
+              const panel = document.getElementById('destPanel');
+
+              if (panel.parentElement !== document.body) {
+                document.body.appendChild(panel);
+              }
+
+              const rect = input.getBoundingClientRect();
+              const scrollTop = window.scrollY || document.documentElement.scrollTop;
+              const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+
+              const panelHeight = panel.scrollHeight || 260;
+              const spaceBelow = window.innerHeight - rect.bottom;
+              const spaceAbove = rect.top;
+
+              panel.style.position = 'absolute';
+              panel.style.left = rect.left + scrollLeft + 'px';
+              panel.style.width = rect.width + 'px';
+              panel.style.zIndex = '2147483647';
+
+              // ✅ 自動判斷：若下方空間不足，往上展開
+              if (spaceBelow < panelHeight + 20 && spaceAbove > panelHeight) {
+                panel.style.top = (rect.top + scrollTop - panelHeight - 8) + 'px';
+              } else {
+                panel.style.top = (rect.bottom + scrollTop + 6) + 'px';
+              }
+
+              panel.style.display = 'block';
+        }
+
+
+        function closeAllDropdowns(){ $('.dropdown-panel').hide(); }
+
+        // 目的地外層：只有點「非 input 區域」才切換面板
+        $('#destSelect').on('mousedown', function(e){
+          if ($(e.target).is('#destinationInput')) return;
+          e.stopPropagation();
+          renderSuggest(TW_DESTS); // ✅ 永遠重新載入完整清單
+          $('#destPanel').toggle();
+        });
+
+        // 目的地輸入框：focus / input / click / mousedown 全部阻止冒泡，並顯示面板
+        $('#destinationInput')
+          .on('focus input click mousedown', function(e){
+            e.stopPropagation();
+
+            // ✅ 關閉日期選擇器
+            if ($('#dateLabel').data('daterangepicker'))
+                $('#dateLabel').data('daterangepicker').hide();
+
+            const q = $(this).val().trim();
+            const filtered = q ? TW_DESTS.filter(x => x.toLowerCase().includes(q.toLowerCase())) : TW_DESTS;
+            // renderSuggest(filtered.length ? filtered : TW_DESTS);
+            openDest();
+          });
+
+
+        // 面板本體：阻止事件冒泡，不讓 document 關掉
+        $('#destPanel').on('mousedown click', function(e){ e.stopPropagation(); });
+
+        // 全域點擊 / 按下關閉所有下拉（mousedown 能更早吃到事件，避免閃現）
+        $(document).on('mousedown click', function(){ closeAllDropdowns(); });
+
+        /* 旅客數（內嵌控制） */
+        let cnt = Number($('#peopleInput').val() || 2);
+        function syncPeople(){
+          $('#peopleCount').text(cnt);
+          $('#peopleLabel').text(cnt + ' 位旅客');
+          $('#peopleInput').val(cnt);
+        }
+        $('#plus').on('click', function(e){ e.preventDefault(); e.stopPropagation(); cnt++; syncPeople(); });
+        $('#minus').on('click', function(e){ e.preventDefault(); e.stopPropagation(); if(cnt>1){ cnt--; syncPeople(); }});
+        syncPeople();
+
+        /* 日期：daterangepicker（僅日期，不含時間） */
+        $('#dateLabel').daterangepicker({
+          parentEl: 'body',     // 讓面板直接掛在 body
+          drops: 'down',        // 或 'auto'，避免向上長被裁
+          opens: 'center',      // 依你的版面調整
+          autoUpdateInput: false,
+          minDate: moment().startOf('day'), // ✅ 禁止選過去
+          locale: {
+              format: 'YYYY/MM/DD',
+              cancelLabel: '清除',
+              applyLabel:'確定',
+              daysOfWeek: ['日','一','二','三','四','五','六'],
+              monthNames: ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+              firstDay: 0,
+          }
+        }, function(start, end){
+          $('#startDate').val(start.format('YYYY/MM/DD'));
+          $('#endDate').val(end.format('YYYY/MM/DD'));
+          $('#dateLabel').val(start.format('YYYY/MM/DD') + ' - ' + end.format('YYYY/MM/DD'));
+        }).on('cancel.daterangepicker', function(){
+          $(this).val('');
+          $('#startDate,#endDate').val('');
+        });
+
+        // 表單送出（若要驗證可在這裡做）
+        $('#topSearchForm').on('submit', function (e) {
+
+            let destination = $('#destinationInput').val().trim();
+            let start = $('#startDate').val().trim();
+            let end = $('#endDate').val().trim();
+
+            let isValid = true;
+
+            // 清除之前的錯誤樣式
+            $('#destinationInput').removeClass('is-invalid');
+            $('#dateLabel').removeClass('is-invalid');
+
+            // ✅ 驗證目的地
+            if (destination === "") {
+                $('#destinationInput').addClass('is-invalid');
+                isValid = false;
+            }
+
+            // ✅ 驗證日期
+            if (start === "" || end === "") {
+                $('#dateLabel').addClass('is-invalid');
+                isValid = false;
+            }
+
+            // ❌ 若不通過 → 用 SweetAlert 提示
+            if (!isValid) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: '資訊尚未填寫完整',
+                    text: '請選擇「目的地」及「旅行日期」。',
+                    confirmButtonColor: '#7ec8e3',
+                    confirmButtonText: '我知道了'
+                });
+                return false;
+            }
+
+            // ✅ 通過 → 放行表單
+            return true;
+        });
+
+
+    </script>
+}

@@ -1,0 +1,232 @@
+@{
+    ViewData["Title"] = "常見問題";
+}
+
+<!-- ====================== FAQ 頁面結構 ====================== -->
+<div class="faq-hero">
+    <h2>常見問題</h2>
+    <p>找不到答案嗎？搜尋一下或看看熱門問題吧！</p>
+    <div class="faq-search-wrapper">
+        <div class="faq-search-inner">
+            <input type="text" id="faqSearch" class="faq-search-box" placeholder="🔍 搜尋常見問題...">
+            <button id="faqClearBtn" type="button" aria-label="清除搜尋"><i class="fas fa-times"></i></button>
+            <div id="faqSearchResults" class="faq-search-result-box"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 熱門常見問題 -->
+<div class="faq-section faq-popular-section">
+    <div class="faq-popular-inner">
+        <h4><i class="fas fa-fire text-danger"></i> 熱門常見問題</h4>
+        <div class="faq-popular-carousel" id="hotFaqCarousel"></div>
+    </div>
+</div>
+
+<!-- FAQ 分類 -->
+<div class="faq-section faq-category-section">
+    <h4 class="fw-bold text-primary mb-4 text-center"><i class="fas fa-list"></i> 問題分類</h4>
+    <div class="row g-4 justify-content-center" id="faqCategories"></div>
+</div>
+
+<!-- FAQ 詳細列表 -->
+<div class="faq-section">
+    <div id="faqDetailList"></div>
+</div>
+
+<!-- ✅ 保留原 JS 完整不動 -->
+@section Scripts {
+    <script>
+        // 原本的 jQuery / AJAX 程式碼原封不動
+        let allFaqs = [];
+        let categories = [];
+        $(function () {
+            $.getJSON('@Url.Content("~/CustomersArea/FrontFAQs/api/hot")', function (faqs) {
+                let html = "";
+                faqs.forEach((faq, idx) => {
+                    html += `
+                        <div class="faq-popular-item" tabindex="0" role="button" data-idx="${idx}">
+                            <div class="fw-bold mb-2"><i class="fas fa-question-circle text-primary me-2"></i>${faq.question}</div>
+                            <div class="faq-answer-preview">${faq.answer}</div>
+                        </div>`;
+                });
+                $('#hotFaqCarousel').html(html);
+                $('#hotFaqCarousel .faq-popular-item').on('click', function () {
+                    const idx = $(this).data('idx');
+                    showFaqDetail([faqs[idx]], "熱門常見問題");
+                });
+            });
+            $.getJSON('/CustomersArea/FrontFAQs/api/all', function (faqs) { allFaqs = faqs; });
+            $.getJSON('/CustomersArea/FrontFAQs/api/categories', function (cats) { categories = cats; renderCategories(); });
+
+            $('#faqSearch').on('input', function () {
+                const kw = $(this).val().toLowerCase().trim();
+                const $box = $('#faqSearchResults');
+                const $clearBtn = $('#faqClearBtn');
+
+                if (kw) $clearBtn.show(); else $clearBtn.hide();
+                if (!kw) { $box.hide().empty(); return; }
+
+                const result = allFaqs.filter(f =>
+                    (f.question && f.question.toLowerCase().includes(kw)) ||
+                    (f.answer && f.answer.toLowerCase().includes(kw))
+                );
+
+                if (result.length === 0) {
+                    $box.html('<div class="p-3 text-muted">查無相關問題</div>').show();
+                    return;
+                }
+
+                let html = result.slice(0, 3).map((f, idx) => `
+                    <div class="faq-search-result-item" data-id="${idx}">
+                        <i class="fas fa-question-circle text-primary me-2"></i>${f.question}
+                    </div>`).join('');
+                $box.html(html).show();
+
+                // ✅ 點擊項目時才顯示搜尋結果
+                $('.faq-search-result-item').on('click', function () {
+                    const id = $(this).data('id');
+                    $box.hide();
+                    showFaqDetail([result[id]], `搜尋結果`); // ← 移除 (1筆)
+                });
+            });
+
+            $('#faqSearch').on('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const kw = $(this).val().toLowerCase().trim();
+                    if (!kw) return;
+
+                    const result = allFaqs.filter(f =>
+                        (f.question && f.question.toLowerCase().includes(kw)) ||
+                        (f.answer && f.answer.toLowerCase().includes(kw))
+                    );
+
+                    const $box = $('#faqSearchResults');
+                    $box.hide(); // 避免重複顯示
+                    if (result.length > 0) {
+                        showFaqDetail(result, `搜尋結果`); // ✅ 移除筆數顯示
+                    } else {
+                        $box.html('<div class="p-3 text-muted">查無相關問題</div>').show();
+                    }
+                }
+            });
+
+
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#faqSearch, #faqSearchResults, #faqClearBtn').length) {
+                    $('#faqSearchResults').hide();
+                }
+            });
+            $('#faqClearBtn').on('click', function () {
+                $('#faqSearch').val('');
+                $('#faqSearchResults').hide().empty();
+                $(this).hide();
+            });
+        });
+        function renderCategories() {
+            let icons = ['fa-paw', 'fa-cat', 'fa-fish', 'fa-bone', 'fa-heart', 'fa-house', 'fa-sun', 'fa-moon'];
+            let html = '';
+            categories.forEach((cat, i) => {
+                html += `
+                    <div class="col-6 col-md-4 col-lg-3 text-center">
+                        <div class="faq-category-card" data-id="${cat.id}">
+                            <div class="faq-category-icon fa ${icons[i % icons.length]}"></div>
+                            <div class="fw-bold">${cat.name}</div>
+                        </div>
+                    </div>`;
+            });
+            $('#faqCategories').html(html);
+            $('.faq-category-card').on('click', function () {
+                const catid = $(this).data('id');
+                const result = allFaqs.filter(f => f.categoryID == catid);
+                const catName = categories.find(c => c.id == catid).name;
+                showFaqDetail(result, catName);
+            });
+        }
+        function showFaqDetail(faqs, title) {
+            // 🔹 筆數顯示
+            const countText = faqs.length > 0 ? `（${faqs.length} 筆）` : '';
+
+            let html = `
+                <h4 class="fw-bold mb-4 text-primary">
+                    <i class="fa-solid fa-lightbulb text-warning"></i>  ${title}${countText}
+                </h4>`;
+
+            if (faqs.length === 0) {
+                html += '<div class="alert alert-warning">查無相關問題</div>';
+            } else {
+                faqs.forEach((faq, idx) => {
+                    html += `
+                        <div class="faq-card" data-id="${idx}">
+                            <div class="faq-card-question">
+                                <span><i class="fas fa-question-circle me-2 text-primary"></i>${faq.question}</span>
+                                <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                            </div>
+                            <div class="faq-card-answer">${faq.answer}</div>
+                        </div>`;
+                });
+            }
+
+            $('#faqDetailList').html(html);
+
+            // 啟用展開/收合
+            $('.faq-card').on('click', function () {
+                $(this).toggleClass('open');
+            });
+
+            // 🔹 自動捲動至 FAQ 區塊
+            $('html, body').animate({ scrollTop: $('#faqDetailList').offset().top - 100 }, 500);
+        }
+
+        // 🔹 讓熱門常見問題可以用滑鼠拖曳 / 觸控滑動
+        const carousel = document.getElementById("hotFaqCarousel");
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        carousel.addEventListener("mousedown", (e) => {
+            isDown = true;
+            carousel.classList.add("dragging");
+            startX = e.pageX - carousel.offsetLeft;
+            scrollLeft = carousel.scrollLeft;
+        });
+
+        carousel.addEventListener("mouseleave", () => {
+            isDown = false;
+            carousel.classList.remove("dragging");
+        });
+
+        carousel.addEventListener("mouseup", () => {
+            isDown = false;
+            carousel.classList.remove("dragging");
+        });
+
+        carousel.addEventListener("mousemove", (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - carousel.offsetLeft;
+            const walk = (x - startX) * 1.2; // 拖曳速度比例
+            carousel.scrollLeft = scrollLeft - walk;
+        });
+
+        // 🔹 支援觸控滑動（手機／平板）
+        let touchStartX = 0;
+        let touchScrollLeft = 0;
+
+        carousel.addEventListener("touchstart", (e) => {
+            touchStartX = e.touches[0].pageX;
+            touchScrollLeft = carousel.scrollLeft;
+        });
+
+        carousel.addEventListener("touchmove", (e) => {
+            const x = e.touches[0].pageX;
+            const walk = (x - touchStartX) * 1.2;
+            carousel.scrollLeft = touchScrollLeft - walk;
+        });
+
+
+    </script>
+}
+
